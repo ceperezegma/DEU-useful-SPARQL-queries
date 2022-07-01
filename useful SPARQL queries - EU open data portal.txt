@@ -1,0 +1,201 @@
+**********************************
+list of EU data providers (data provider name, type of EU organisation, EU organisation name) and published datasets
+**********************************
+
+PREFIX data: <http://data.odw.tw/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX ns: <http://www.w3.org/ns/org#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+select ?dataProvider ?dataProviderName ?corporateBodyClassification ?classificationName (count(?datasetURI) as ?numDatasets)
+where {
+    <http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+    ?catalogue a dcat:Catalog;
+        dcat:dataset ?datasetURI.    
+    ?datasetURI dct:publisher ?publisher.
+    ?publisher at:authority-code ?dataProvider;
+        skos:prefLabel ?dataProviderName;
+        ns:classification ?publisherClasification.    
+    ?publisherClasification at:authority-code ?corporateBodyClassification;
+        skos:prefLabel ?classificationName.        
+    filter(lang(?classificationName)="en").
+    filter(lang(?dataProviderName)="en").
+}
+order by desc (?numDatasets)
+
+
+
+**********************************
+list of EU datasets and datasets titles in English
+**********************************
+
+PREFIX data: <http://data.odw.tw/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX ns: <http://www.w3.org/ns/org#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+select ?datasetURI ?datasetTitle
+where {
+	<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+	?catalogue a dcat:Catalog.
+	?catalogue  dcat:dataset ?datasetURI.
+	?datasetURI dct:title ?datasetTitle.
+  	filter(lang(?datasetTitle) = 'en' || lang(?datasetTitle) = '').
+}
+order by ?datasetURI
+
+
+**********************************
+number of published EU datasets per data provider + additional information about data providers
+**********************************
+
+PREFIX data: <http://data.odw.tw/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX ns: <http://www.w3.org/ns/org#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+select ?dataProvider ?dataProviderName ?corporateBodyClassification ?classificationName (count(?datasetURI) as ?numDatasets)
+where {
+    <http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+    ?catalogue a dcat:Catalog.
+  	?catalogue dcat:dataset ?datasetURI.
+  	optional {
+  		?datasetURI dct:publisher ?publisher.
+    	?publisher at:authority-code ?dataProvider.
+    	?publisher skos:prefLabel ?dataProviderName.
+    	?publisher ns:classification ?publisherClasification.
+    	?publisherClasification at:authority-code ?corporateBodyClassification.
+    	?publisherClasification skos:prefLabel ?classificationName.    	
+    	filter(lang(?dataProviderName)="en").
+    	filter(lang(?classificationName)="en").
+  	}  
+}
+order by desc (?numDatasets)
+
+
+**********************************
+EU datasets that are not real datasets
+**********************************
+
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX odp:  <http://data.europa.eu/euodp/ontologies/ec-odp#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+select DISTINCT *
+where {
+	<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalog.
+	?catalog dcat:dataset ?dataset.
+	FILTER NOT EXISTS {?dataset a dcat:Dataset}
+}
+
+
+**********************************
+list of EU datasets via the catalog record
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+select DISTINCT *
+where {
+	<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalog.
+	?catalog a dcat:Catalog.
+  	?catalog dcat:record ?record.
+  	?record foaf:primaryTopic ?dataset.
+  	FILTER NOT EXISTS {?record a dcat:CatalogRecord}.
+}
+
+
+PREFIX ct: <http://data.linkedct.org/resource/linkedct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+select distinct *
+where {
+	<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalog.
+	?catalog dcat:record ?record.
+  	?catalog dcat:dataset ?dataset.
+  	?record a dcat:CatalogRecord.
+  	?record foaf:primaryTopic ?dataset.
+  	?dataset a dcat:Dataset
+}
+
+
+
+**********************************
+list of EU datsets without title in English
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select ?datasetURI as ?DatasetWithoutEnTitle 
+where {
+		#<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+        ?catalogue a dcat:Catalog.
+        ?catalogue  dcat:dataset ?datasetURI.
+		filter not exists  {
+                ?datasetURI dct:title ?datasetTitle.
+                filter(lang(?datasetTitle) = 'en' || lang(?datasetTitle)= '').
+	}
+}
+
+
+**********************************
+extract for a EU dataset their publication and update dates and its related catalogRecord publication and update dates
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+select distinct ?dataset ?publicationDate ?lastUpdateDate ?recordCreated ?recordUpdate
+where {
+	<http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+	?catalog dcat:record ?record.  	
+  	?record a dcat:CatalogRecord.
+  	?record dct:issued ?recordCreated.  
+  	?record dct:modified ?recordUpdate.
+  	?record foaf:primaryTopic ?dataset.
+  	?dataset a dcat:Dataset.
+  	?dataset dct:issued ?publicationDate.
+  	?dataset dct:modified ?lastUpdateDate.
+  	filter(?dataset = <http://data.europa.eu/88u/dataset/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions-fisma>)
+  
+}
+order by desc(?lastUpdateDate)
+
+
+**********************************
+list of datasets for a specific data provider with publication and update dates and update frecuency
+**********************************
+
+PREFIX data: <http://data.odw.tw/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX ns: <http://www.w3.org/ns/org#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+select ?datasetURI ?datasetPublicationDate ?datasetLastModificationDate ?updateFrequency
+where {
+    <http://data.europa.eu/88u/catalogue/european-union-open-data-portal> <http://purl.org/dc/terms/hasPart> ?catalogue.
+    ?catalogue a dcat:Catalog;
+        dcat:dataset ?datasetURI.
+  	?datasetURI dct:publisher <http://publications.europa.eu/resource/authority/corporate-body/ECDC>. 
+  	optional {?datasetURI dct:issued ?datasetPublicationDate}
+    optional {?datasetURI dct:modified ?datasetLastModificationDate}
+    optional {?datasetURI dct:accrualPeriodicity ?updateFrequency}
+}
+order by desc (?datasetPublicationDate)
