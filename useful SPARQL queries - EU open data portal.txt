@@ -227,3 +227,74 @@ where {
   	optional {?datasetURI dct:accrualPeriodicity ?updateFrequency}
 }
 order by desc (?datasetPublicationDate)
+
+
+**********************************
+count the number of datasets in the portal without including the datasets from the legacy ODP
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select (count(?datasetURI) as ?numDatasets)
+where {    
+    ?catalogue a dcat:Catalog;
+  		dcat:dataset ?datasetURI.
+    filter not exists {?catalogue dct:isPartOf ?ODPCatalogue}.  	
+}
+
+
+**********************************
+count the number of datasets in the portal per catalogue excluding EU catalogues
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select ?country (count(?dataset) as ?numDatasets)
+where {    
+    ?catalogue a dcat:Catalog;  		
+    	dct:spatial ?country;
+     	dcat:dataset ?dataset.
+  	filter(?country != <http://publications.europa.eu/resource/authority/continent/EUROPE>).  		
+}
+group by ?country
+order by desc (?numDatasets)
+
+
+
+**********************************
+calculate the total size of datasets distributions
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select (sum(?distributionSize) as ?totalDistributionsSize)
+where {    
+    ?catalogue a dcat:Catalog;    
+     	dcat:dataset ?dataset.
+  	?dataset dcat:distribution ?distribution.
+  	?distribution dcat:byteSize ?distributionSize.  	 	
+}
+
+
+**********************************
+datasets, distributions, download URL and distribution size in Bytes
+**********************************
+
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select ?dataset ?format ?downloadURL ?distributionSize
+where {    
+    ?catalogue a dcat:Catalog;    
+     	dcat:dataset ?dataset.
+  	?dataset dcat:distribution ?distribution.
+  	?distribution dct:format ?format;
+             dcat:downloadURL ?downloadURL;
+             dcat:byteSize ?distributionSize.
+  	filter(?format = <http://publications.europa.eu/resource/authority/file-type/CSV>).  	
+}
+order by ?dataset
+limit 100
