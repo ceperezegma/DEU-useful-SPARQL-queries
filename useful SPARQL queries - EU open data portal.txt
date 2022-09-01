@@ -336,3 +336,20 @@ where {
     	dcat:dataset ?dataset. 
 	filter(?catalogue1 != ?catalogue2 )
 }
+
+
+**********************************
+detect EU datasets without data provider
+**********************************
+
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+select distinct *
+where {
+   ?parentCategoy dct:hasPart ?category. 
+   ?category dcat:dataset ?dataset.
+   filter not exists {?dataset a dcat:Dataset}
+   optional {?dataset dct:publisher ?publisher}
+ }
+limit 100
