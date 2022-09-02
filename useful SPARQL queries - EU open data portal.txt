@@ -368,3 +368,21 @@ where {
         ?catalogue  dcat:dataset ?datasetURI.
 		filter not exists  {?datasetURI dct:description ?datasetDescription.}
 }
+
+
+
+**********************************
+detect datasets without accessURL
+**********************************
+
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+select ?datasetURI ?accessURL
+where {		
+        ?catalogue a dcat:Catalog.
+        ?catalogue  dcat:dataset ?datasetURI.
+  		?datasetURI dcat:distribution ?distribution.
+  		?distribution a dcat:Distribution.              			
+		filter not exists  {?distribution dcat:accessURL ?accessURL.}
+}
