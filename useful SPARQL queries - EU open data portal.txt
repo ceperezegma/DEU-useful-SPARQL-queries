@@ -386,3 +386,18 @@ where {
   		?distribution a dcat:Distribution.              			
 		filter not exists  {?distribution dcat:accessURL ?accessURL.}
 }
+
+
+
+**********************************
+detect catalogues without datasets
+**********************************
+
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+select ?catalogue
+where
+{
+  ?catalogue a dcat:Catalog
+  filter not exists {?catalogue dcat:dataset ?dataset}
+}
